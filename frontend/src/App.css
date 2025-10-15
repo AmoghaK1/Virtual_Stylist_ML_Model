@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --color-chamoisee: #8B5A3C;
+  --color-chamoisee-light: #A0785A;
+  --color-khaki: #C3B091;
+  --color-khaki-dark: #A68B5B;
+  --color-beige: #F5F5DC;
+  --color-ivory: #FFFFF0;
+  --color-tan: #D2B48C;
+  --color-brown-dark: #6D4C41;
+  --color-brown-light: #BCAAA4;
+}
+
+/* Custom Tailwind classes for our color scheme */
+.text-brown-dark { color: #6D4C41; }
+.text-brown-light { color: #BCAAA4; }
+.text-chamoisee { color: #8B5A3C; }
+.text-khaki-dark { color: #A68B5B; }
+.bg-brown-dark { background-color: #6D4C41; }
+.bg-chamoisee { background-color: #8B5A3C; }
+.bg-khaki-dark { background-color: #A68B5B; }
+.bg-warm-white { background-color: #FEFEFE; }
+.bg-ivory { background-color: #FFFFF0; }
+.bg-beige { background-color: #F5F5DC; }
+.bg-tan { background-color: #D2B48C; }
+.bg-khaki { background-color: #C3B091; }
+.border-brown-dark { border-color: #6D4C41; }
+.border-khaki-dark { border-color: #A68B5B; }
+.border-khaki { border-color: #C3B091; }
+.placeholder-brown-light::placeholder { color: #BCAAA4; }
+.focus\:ring-brown-dark:focus { --tw-ring-color: #6D4C41; }
+.focus\:border-brown-dark:focus { border-color: #6D4C41; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background-color: #FEFEFE;
+  color: #A0785A;
+  line-height: 1.6;
+}
+
+.btn-primary {
+  background-color: #8B5A3C;
+  color: #FFFFF0;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(109, 76, 65, 0.3);
+  transform: translateY(0);
+}
+
+.btn-primary:hover {
+  background-color: #6D4C41;
+  box-shadow: 0 20px 25px -5px rgba(109, 76, 65, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  border: 2px solid #8B5A3C;
+  color: #8B5A3C;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #8B5A3C;
+  color: #FFFFF0;
+  color: white;
+}
+
+.card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  transform: translateY(-8px);
+}
+
+.section-padding {
+  padding: 4rem 1rem;
+}
+
+.container-custom {
+  max-width: 80rem;
+  margin: 0 auto;
+}
