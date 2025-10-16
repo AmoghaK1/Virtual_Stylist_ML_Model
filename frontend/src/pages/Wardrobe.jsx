@@ -97,6 +97,20 @@ const Wardrobe = () => {
               type={item.type}
               weather={item.weather}
               color={item.color}
+              onDelete={async () => {
+                try {
+                  const res = await fetch(`http://localhost:3000/api/wardrobe/${item.id}?userId=${user.id}`, { method: 'DELETE' });
+                  if (!res.ok) throw new Error('Failed to delete');
+                  const data = await res.json();
+                  if (data.ok) {
+                    // Refresh list
+                    fetchItems(filters);
+                  }
+                } catch (e) {
+                  console.error(e);
+                  alert('Failed to delete item');
+                }
+              }}
             />
           ))}
         </div>

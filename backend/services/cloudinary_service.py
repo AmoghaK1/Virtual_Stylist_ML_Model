@@ -58,3 +58,9 @@ def build_optimized_url(public_id: str) -> str:
 def build_autocrop_square_url(public_id: str, size: int = 500) -> str:
     _ensure_configured()
     return cloudinary.CloudinaryImage(public_id).build_url(crop="auto", gravity="auto", width=size, height=size)
+
+
+def delete_image(public_id: str) -> dict:
+    """Delete an image from Cloudinary by public_id."""
+    _ensure_configured()
+    return cloudinary.uploader.destroy(public_id)

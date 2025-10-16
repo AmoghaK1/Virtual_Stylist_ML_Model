@@ -326,6 +326,42 @@ async def list_wardrobe_items(
 
     return {"ok": True, "items": items}
 
+
+@app.delete("/api/wardrobe/{item_id}")
+async def delete_wardrobe_item(item_id: str, userId: str = Query(...)):
+    """Delete a wardrobe item (and its Cloudinary image) by id for a user."""
+    from bson import ObjectId
+    # DB
+    db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
+    db = app.state.mongo_client[db_name]
+
+    try:
+        obj_id = ObjectId(item_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid item id")
+
+    try:
+        user_object_id = ObjectId(userId)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid user id")
+
+    item = await db["wardrobe"].find_one({"_id": obj_id, "userId": user_object_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    # Delete image from Cloudinary if present
+    public_id = item.get("publicId")
+    if public_id:
+        try:
+            await run_in_threadpool(lambda: cloudinary_service.delete_image(public_id))
+        except Exception:
+            # Ignore Cloudinary deletion failures, continue to delete DB doc
+            pass
+
+    # Delete document
+    await db["wardrobe"].delete_one({"_id": obj_id})
+    return {"ok": True}
+
 if __name__ == "__main__":
 	import uvicorn
 
