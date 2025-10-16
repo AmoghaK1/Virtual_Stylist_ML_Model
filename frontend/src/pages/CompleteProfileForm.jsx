@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import StepIndicator from '../components/StepIndicator';
+import FormStep from '../components/FormStep';
 
 const CompleteProfileForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -130,14 +132,7 @@ const CompleteProfileForm = () => {
                   ← Back to Dashboard
                 </Link>
                 {/* Progress Indicator */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-8 h-2 rounded-full transition-all duration-300 ${
-                    currentStep >= 1 ? 'bg-amber-800' : 'bg-amber-400'
-                  }`}></div>
-                  <div className={`w-8 h-2 rounded-full transition-all duration-300 ${
-                    currentStep >= 2 ? 'bg-amber-800' : 'bg-amber-400'
-                  }`}></div>
-                </div>
+                <StepIndicator currentStep={currentStep} totalSteps={2} />
               </div>
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-amber-800 mb-2">Complete Your Profile</h1>
@@ -154,9 +149,8 @@ const CompleteProfileForm = () => {
                 style={{ transform: `translateX(-${(currentStep - 1) * 100}%)` }}
               >
                 {/* Step 1: Basic Information */}
-                <div className="w-full flex-shrink-0 p-6 flex items-center">
-                  <div className="w-full">
-                    <form onSubmit={handleNext} className="h-full flex flex-col justify-center">
+                <FormStep isActive={currentStep === 1}>
+                  <form onSubmit={handleNext} className="h-full flex flex-col justify-center">
                       <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
                         <div>
                           <label htmlFor="height" className="block text-sm font-semibold text-amber-800 mb-2">
@@ -264,13 +258,11 @@ const CompleteProfileForm = () => {
                         Next
                       </button>
                     </form>
-                  </div>
-                </div>
+                </FormStep>
 
                 {/* Step 2: Preferences */}
-                <div className="w-full flex-shrink-0 p-6 flex items-center">
-                  <div className="w-full">
-                    <form onSubmit={handleSubmit} className="h-full flex flex-col justify-center">
+                <FormStep isActive={currentStep === 2}>
+                  <form onSubmit={handleSubmit} className="h-full flex flex-col justify-center">
                       <div className="grid grid-cols-1 gap-y-6 mb-8">
                         <div>
                           <label htmlFor="favourite_colors" className="block text-sm font-semibold text-amber-800 mb-2">
@@ -324,8 +316,7 @@ const CompleteProfileForm = () => {
                         </button>
                       </div>
                     </form>
-                  </div>
-                </div>
+                </FormStep>
               </div>
             </div>
 
