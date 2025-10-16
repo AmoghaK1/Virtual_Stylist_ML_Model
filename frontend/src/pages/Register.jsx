@@ -37,7 +37,9 @@ const Register = () => {
     setCurrentStep(1);
   };
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Validate step 2 fields
     if (formData.password !== formData.confirmPassword) {
@@ -48,8 +50,35 @@ const Register = () => {
       alert('Password must be at least 6 characters');
       return;
     }
-    console.log('Registration submitted:', formData);
-    // Handle registration logic here
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          age: Number(formData.age),
+          gender: formData.gender,
+          location: formData.location,
+          password: formData.password,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.detail || 'Registration failed');
+      }
+      const data = await res.json();
+      alert('Registration successful');
+      // Optionally redirect to login
+      // navigate('/login');
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -243,9 +272,10 @@ const Register = () => {
                         </button>
                         <button
                           type="submit"
-                          className="flex-1 bg-brown-dark hover:bg-opacity-90 text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                          disabled={submitting}
+                          className={`flex-1 bg-brown-dark hover:bg-opacity-90 text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 ${submitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                          Register
+                          {submitting ? 'Registering...' : 'Register'}
                         </button>
                       </div>
                     </form>
