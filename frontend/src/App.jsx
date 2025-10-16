@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CompleteProfileForm from './pages/CompleteProfileForm';
+import Wardrobe from './pages/Wardrobe';
+import WardrobeEntryForm from './pages/WardrobeEntryForm';
 import About from './pages/About';
 import Services from './pages/Services';
 import Contact from './pages/Contact';
@@ -24,6 +26,8 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/complete-profile" element={<CompleteProfileForm />} />
+          <Route path="/wardrobe" element={<Wardrobe />} />
+          <Route path="/wardrobe/add" element={<WardrobeEntryForm />} />
           {/* Add more routes as needed */}
           <Route path="/get-started" element={<Register />} />
           <Route path="/learn-more" element={<About />} />

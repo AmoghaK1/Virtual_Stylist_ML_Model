@@ -29,8 +29,7 @@ const Dashboard = () => {
   };
 
   const handleWardrobeClick = () => {
-    // TODO: Navigate to wardrobe page
-    console.log('Wardrobe clicked');
+    navigate('/wardrobe');
   };
 
   const handleNotesClick = () => {

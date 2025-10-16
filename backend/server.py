@@ -2,41 +2,44 @@ import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pydantic import BaseModel, EmailStr, Field
+from backend.services import cloudinary_service
+from starlette.concurrency import run_in_threadpool
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-	# Startup: load env and create Mongo client
-	load_dotenv()
-	mongo_uri = os.getenv("MONGODB_URI")
-	if not mongo_uri:
-		raise RuntimeError("MONGODB_URI is not set in environment.")
+    # Startup: load env and create Mongo client
+    load_dotenv()
+    mongo_uri = os.getenv("MONGODB_URI")
+    if not mongo_uri:
+        raise RuntimeError("MONGODB_URI is not set in environment.")
 
-	app.state.mongo_client = AsyncIOMotorClient(mongo_uri)
+    app.state.mongo_client = AsyncIOMotorClient(mongo_uri)
 
-	# Ensure unique index on users.email and user-preferences.userId
-	db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
-	db = app.state.mongo_client[db_name]
-	try:
-		await db.users.create_index("email", unique=True)
-		await db["user-preferences"].create_index("userId", unique=True)
-	except Exception:
-		# Index may already exist or Mongo may be unreachable at startup; ignore here.
-		pass
+    # Ensure indices on collections
+    db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
+    db = app.state.mongo_client[db_name]
+    try:
+        await db.users.create_index("email", unique=True)
+        await db["user-preferences"].create_index("userId", unique=True)
+        await db["wardrobe"].create_index([("userId", 1), ("createdAt", -1)])
+    except Exception:
+        # Index may already exist or Mongo may be unreachable at startup; ignore here.
+        pass
 
-	# Yield control to the application
-	try:
-		yield
-	finally:
-		# Shutdown: close client
-		client = getattr(app.state, "mongo_client", None)
-		if client is not None:
-			client.close()
+    # Yield control to the application
+    try:
+        yield
+    finally:
+        # Shutdown: close client
+        client = getattr(app.state, "mongo_client", None)
+        if client is not None:
+            client.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -225,9 +228,108 @@ async def complete_profile(payload: CompleteProfileRequest):
  
 
 
+@app.post("/api/wardrobe")
+async def add_wardrobe_item(
+    userId: str = Form(...),
+    type: str = Form(...),
+    weather: str = Form(...),
+    color: str = Form(...),
+    image: UploadFile = File(...),
+):
+    """Upload an image to Cloudinary and store wardrobe item in MongoDB."""
+    # DB
+    db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
+    db = app.state.mongo_client[db_name]
+
+    # Validate user
+    from bson import ObjectId
+    try:
+        user_object_id = ObjectId(userId)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+    user = await db.users.find_one({"_id": user_object_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Read image bytes
+    file_bytes = await image.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty image file")
+
+    # Upload to Cloudinary in thread pool
+    public_id_hint = f"{userId}_{int(datetime.utcnow().timestamp())}"
+    try:
+        upload_result = await run_in_threadpool(lambda: cloudinary_service.upload_image_sync(file_bytes=file_bytes, public_id=public_id_hint))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Image upload failed: {e}")
+
+    image_url = upload_result.get("secure_url") or upload_result.get("url")
+    public_id = upload_result.get("public_id")
+    if not image_url:
+        raise HTTPException(status_code=500, detail="Upload did not return a URL")
+
+    doc = {
+        "userId": user_object_id,
+        "imageUrl": image_url,
+        "publicId": public_id,
+        "type": type,
+        "weather": weather,
+        "color": color,
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow(),
+    }
+    result = await db["wardrobe"].insert_one(doc)
+
+    return {
+        "ok": True,
+        "id": str(result.inserted_id),
+        "imageUrl": image_url,
+    }
+
+
+@app.get("/api/wardrobe")
+async def list_wardrobe_items(
+    userId: str = Query(...),
+    color: str | None = Query(None),
+    type: str | None = Query(None),
+    weather: str | None = Query(None),
+):
+    """List wardrobe items for a user with optional filters."""
+    db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
+    db = app.state.mongo_client[db_name]
+
+    from bson import ObjectId
+    try:
+        user_object_id = ObjectId(userId)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid user ID format")
+
+    query: dict = {"userId": user_object_id}
+    if color:
+        query["color"] = color
+    if type:
+        query["type"] = type
+    if weather:
+        query["weather"] = weather
+
+    cursor = db["wardrobe"].find(query).sort("createdAt", -1)
+    items = []
+    async for item in cursor:
+        items.append({
+            "id": str(item["_id"]),
+            "imageUrl": item.get("imageUrl"),
+            "type": item.get("type"),
+            "weather": item.get("weather"),
+            "color": item.get("color"),
+        })
+
+    return {"ok": True, "items": items}
+
 if __name__ == "__main__":
 	import uvicorn
 
 	# Run the app on port 3000
 	uvicorn.run("backend.server:app", host="0.0.0.0", port=3000)
+
 
