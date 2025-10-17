@@ -234,6 +234,7 @@ async def add_wardrobe_item(
     type: str = Form(...),
     weather: str = Form(...),
     color: str = Form(...),
+    occasion: str = Form(...),
     image: UploadFile = File(...),
 ):
     """Upload an image to Cloudinary and store wardrobe item in MongoDB."""
@@ -276,6 +277,7 @@ async def add_wardrobe_item(
         "type": type,
         "weather": weather,
         "color": color,
+        "occasion": occasion,
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
@@ -294,6 +296,7 @@ async def list_wardrobe_items(
     color: str | None = Query(None),
     type: str | None = Query(None),
     weather: str | None = Query(None),
+    occasion: str | None = Query(None),
 ):
     """List wardrobe items for a user with optional filters."""
     db_name = os.getenv("MONGODB_DB_NAME", "virtual_stylist")
@@ -312,6 +315,8 @@ async def list_wardrobe_items(
         query["type"] = type
     if weather:
         query["weather"] = weather
+    if occasion:
+        query["occasion"] = occasion
 
     cursor = db["wardrobe"].find(query).sort("createdAt", -1)
     items = []
@@ -322,6 +327,7 @@ async def list_wardrobe_items(
             "type": item.get("type"),
             "weather": item.get("weather"),
             "color": item.get("color"),
+            "occasion": item.get("occasion"),
         })
 
     return {"ok": True, "items": items}

@@ -13,7 +13,8 @@ const WardrobeEntryForm = () => {
     image: null,
     type: '',
     color: '',
-    weather: ''
+    weather: '',
+    occasion: ''
   });
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -65,7 +66,7 @@ const WardrobeEntryForm = () => {
     e.preventDefault();
     
     // Validate form
-    if (!formData.image || !formData.type || !formData.color || !formData.weather) {
+    if (!formData.image || !formData.type || !formData.color || !formData.weather || !formData.occasion) {
       alert('Please fill in all fields and select an image');
       return;
     }
@@ -78,6 +79,7 @@ const WardrobeEntryForm = () => {
       fd.append('type', formData.type);
       fd.append('color', formData.color);
       fd.append('weather', formData.weather);
+  fd.append('occasion', formData.occasion);
       fd.append('image', formData.image);
 
       const res = await fetch('http://localhost:3000/api/wardrobe', {
@@ -233,6 +235,23 @@ const WardrobeEntryForm = () => {
                       <option key={weather} value={weather}>{weather}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Ocassion/Style */}
+                <div>
+                  <label htmlFor="occasion" className="block text-sm font-semibold text-amber-800 mb-2">
+                    ocassion/style
+                  </label>
+                  <input
+                    type="text"
+                    id="occasion"
+                    name="occasion"
+                    value={formData.occasion}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="formal, casual"
+                    className="w-full px-4 py-3 border-2 border-brown-dark rounded-lg focus:border-amber-600 focus:outline-none transition-colors bg-white text-amber-800 placeholder-amber-800"
+                  />
                 </div>
               </div>
             </div>
